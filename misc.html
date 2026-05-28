@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Нонанграмма «Бабочка»</title>
+    <style>
+        body {
+            background: #eef2f5;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            overflow-x: auto;
+            position: relative;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .nonogram {
+            display: inline-block;
+            background: #2e4057;
+            padding: 6px;
+            border-radius: 16px;
+        }
+        .top-row {
+            display: flex;
+            margin-left: 0;
+            transform: translateX(8px);
+        }
+        .corner-cell {
+            width: 44px;
+            height: 44px;
+            background: #d9e0eb;
+            margin: 2px;
+            border-radius: 8px;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .top-clue {
+            width: 47px;
+            height: 44px;
+            background: #f4f7fc;
+            margin: 2px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 11px;
+            text-align: center;
+            white-space: pre-line;
+            line-height: 1.2;
+        }
+        .row-wrap {
+            display: flex;
+            align-items: center;
+        }
+        .left-clue {
+            width: 44px;
+            height: 44px;
+            background: #f4f7fc;
+            margin: 2px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .grid-row {
+            display: flex;
+        }
+        .cell {
+            width: 44px;
+            height: 44px;
+            background: #fffcf0;
+            border: 2px solid #bac2cf;
+            margin: 2px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .cell.filled {
+            background: #1e2f3f;
+        }
+        .cell.error {
+            background: #ffb7b7;
+            border-color: #d14545;
+        }
+        button {
+            background: #4b6a9b;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            margin: 20px 5px;
+            font-size: 14px;
+        }
+        .reset-btn {
+            background: #8f9eb2;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .modal-content p {
+            margin: 10px 0;
+        }
+        .modal-content a {
+            word-break: break-all;
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        .close-modal {
+            background: #4b6a9b;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .instruction {
+            background: #f8f9fc;
+            border-left: 4px solid #4b6a9b;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            text-align: left;
+            font-size: 14px;
+            border-radius: 12px;
+            color: #2c3e50;
+        }
+        .instruction p {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🦋 Японский кроссворд «Бабочка»</h1>
+
+    <div class="instruction">
+        <p>📖 Как решать нонанграммы (японские кроссворды):</p>
+        <p>• Цифры слева от строки и сверху над столбцом показывают длины групп закрашенных клеток подряд.</p>
+        <p>• Между группами должна быть минимум одна пустая клетка.</p>
+        <p>• Цифры идут в том же порядке, что и группы: слева направо или сверху вниз.</p>
+        <p>• Цель: закрасить клетки так, чтобы все группы соответствовали подсказкам. В итоге получится картинка — здесь это бабочка 🦋.</p>
+        <p>• Совет: начинайте с больших чисел и строк, где сумма цифр близка к ширине поля. Пустые клетки отмечать не обязательно — просто не закрашивайте их.</p>
+    </div>
+
+    <div id="nonogram-root"></div>
+    <div>
+        <button id="checkBtn">✅ Проверить</button>
+        <button id="resetBtn" class="reset-btn">🗑️ Сброс</button>
+    </div>
+</div>
+
+<div id="archiveModal" class="modal">
+    <div class="modal-content">
+        <p>🎉 Поздравляем! Вы решили головоломку!</p>
+        <p>📦 Ссылка на архив с дополнительными заданиями:</p>
+        <a href="https://drive.google.com/file/d/1ZNNUNpKrvNpSOz2T04d5gbnIk0-hnvci/view?usp=sharing" target="_blank">
+            https://drive.google.com/file/d/1ZNNUNpKrvNpSOz2T04d5gbnIk0-hnvci/view?usp=sharing
+        </a>
+        <div><button class="close-modal" onclick="document.getElementById('archiveModal').style.display='none'">Закрыть</button></div>
+    </div>
+</div>
+
+<script>
+    const leftClues = [
+        [1,1], [1,1,1,1], [3,3,3], [2,1,3,1,2], [3,2,1,2,3], [3,5,3], [3,5,3], [4,3,4], [4,3,4], [3,5,3], [10], [4,3,3], [2,1,3,1,2], [1,2,3,2,1], [3,1,3]
+    ];
+
+    const topClues = [
+        [5], [7,4], [11,1], [2,5,2], [3,4], [1,3,2],
+        [3,9], [13], [3,9], [1,3,2],
+        [3,4], [2,5,2], [8,2,1], [7,3], [5]
+    ];
+
+    const SOLUTION = [
+        [0,0,0,0,0,1,0,0,0,1,0,0,0,0,0],
+        [0,0,0,1,0,0,1,0,1,0,0,1,0,0,0],
+        [0,0,1,1,1,0,1,1,1,0,1,1,1,0,0],
+        [0,1,1,0,1,0,1,1,1,0,1,0,1,1,0],
+        [1,1,1,0,1,1,0,1,0,1,1,0,1,1,1],
+        [1,1,1,0,0,1,1,1,1,1,0,0,1,1,1],
+        [1,1,1,0,0,1,1,1,1,1,0,0,1,1,1],
+        [1,1,1,1,0,0,1,1,1,0,0,1,1,1,1],
+        [1,1,1,1,0,0,1,1,1,0,0,1,1,1,1],
+        [0,1,1,1,0,1,1,1,1,1,0,1,1,1,0],
+        [0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+        [0,1,1,1,1,0,1,1,1,0,1,1,1,0,0],
+        [0,1,1,0,1,0,1,1,1,0,1,0,1,1,0],
+        [0,1,0,1,1,0,1,1,1,0,1,1,0,1,0],
+        [0,1,1,1,0,0,0,1,0,0,0,1,1,1,0]    
+    ];
+
+    let grid = Array(15).fill().map(() => Array(15).fill(0));
+    let errorState = false;
+
+    function render() {
+        const root = document.getElementById("nonogram-root");
+        root.innerHTML = "";
+        const board = document.createElement("div");
+        board.className = "nonogram";
+
+        const topRow = document.createElement("div");
+        topRow.className = "top-row";
+        const corner = document.createElement("div");
+        corner.className = "corner-cell";
+        topRow.appendChild(corner);
+        for (let c = 0; c < 15; c++) {
+            const tc = document.createElement("div");
+            tc.className = "top-clue";
+            tc.innerText = topClues[c].join("\n");
+            topRow.appendChild(tc);
+        }
+        board.appendChild(topRow);
+
+        for (let r = 0; r < 15; r++) {
+            const rowWrap = document.createElement("div");
+            rowWrap.className = "row-wrap";
+            const leftDiv = document.createElement("div");
+            leftDiv.className = "left-clue";
+            leftDiv.innerText = leftClues[r].join(" ");
+            rowWrap.appendChild(leftDiv);
+            const gridRow = document.createElement("div");
+            gridRow.className = "grid-row";
+            for (let c = 0; c < 15; c++) {
+                const cell = document.createElement("div");
+                cell.className = "cell";
+                if (grid[r][c] === 1) cell.classList.add("filled");
+                if (errorState && grid[r][c] !== SOLUTION[r][c]) {
+                    cell.classList.add("error");
+                }
+                cell.addEventListener("click", ((rr, cc) => () => {
+                    grid[rr][cc] = grid[rr][cc] === 1 ? 0 : 1;
+                    errorState = false;
+                    render();
+                    checkWin();
+                })(r, c));
+                gridRow.appendChild(cell);
+            }
+            rowWrap.appendChild(gridRow);
+            board.appendChild(rowWrap);
+        }
+        root.appendChild(board);
+    }
+
+    function checkWin() {
+        let perfect = true;
+        for (let i = 0; i < 15; i++) {
+            for (let j = 0; j < 15; j++) {
+                if (grid[i][j] !== SOLUTION[i][j]) {
+                    perfect = false;
+                }
+            }
+        }
+        if (perfect) {
+            document.getElementById("archiveModal").style.display = "flex";
+        }
+    }
+
+    function checkErrors() {
+        errorState = true;
+        render();
+    }
+
+    function reset() {
+        for (let i = 0; i < 15; i++) {
+            for (let j = 0; j < 15; j++) {
+                grid[i][j] = 0;
+            }
+        }
+        errorState = false;
+        render();
+    }
+
+    render();
+    document.getElementById("checkBtn").addEventListener("click", checkErrors);
+    document.getElementById("resetBtn").addEventListener("click", reset);
+</script>
+</body>
+</html>
